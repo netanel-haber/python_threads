@@ -15,7 +15,7 @@ def session_fetcher(session):
     return partial(fetch, fetch_object=session)
 
 
-NUM_REQUESTS = 100
+NUM_REQUESTS = 200
 
 
 def getRange():
