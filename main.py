@@ -1,7 +1,7 @@
 from requests import Session
 from time import time
 from functools import partial
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 import requests
 
 
@@ -15,7 +15,7 @@ def session_fetcher(session):
     return partial(fetch, fetch_object=session)
 
 
-NUM_REQUESTS = 10
+NUM_REQUESTS = 100
 
 
 def getRange():
@@ -32,12 +32,6 @@ def multi_threaded():
         with Session() as session:
             return list(executor.map(session_fetcher(session), getRange()))
 
-
-def multi_processed():
-    with ProcessPoolExecutor(max_workers=NUM_REQUESTS) as executor:
-        return list(executor.map(fetch, getRange()))
-
-
 def execute(func, name):
     start = time()
     results = func()
@@ -49,4 +43,3 @@ if __name__ == "__main__":
     print({"number_of_requests": NUM_REQUESTS})
     execute(naive, "naive")
     execute(multi_threaded, "multi-threaded")
-    execute(multi_processed, "multi-processed")
