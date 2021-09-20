@@ -1,36 +1,29 @@
 from requests import Session
 from time import time
-from functools import partial
 from concurrent.futures import ThreadPoolExecutor
-import requests
+
+NUM_REQUESTS = 100
 
 
-def fetch(i, fetch_object=requests):
-    return fetch_object.get(f"https://jsonplaceholder.typicode.com/todos/{i}").json()[
-        "id"
-    ]
+def url(i):
+    return f"https://jsonplaceholder.typicode.com/todos/{i}"
 
 
-def session_fetcher(session):
-    return partial(fetch, fetch_object=session)
+def get_fetcher(session):
+    return lambda i: session.get(url(i)).json()["id"]
 
 
-NUM_REQUESTS = 200
-
-
-def getRange():
-    return range(1, NUM_REQUESTS + 1)
-
-
-def naive():
+def single_threaded():
     with Session() as session:
-        return list(map(session_fetcher(session), getRange()))
+        return list(map(get_fetcher(session), range(1, NUM_REQUESTS + 1)))
 
 
 def multi_threaded():
     with ThreadPoolExecutor(max_workers=NUM_REQUESTS) as executor:
         with Session() as session:
-            return list(executor.map(session_fetcher(session), getRange()))
+            return list(
+                executor.map(get_fetcher(session), range(1, NUM_REQUESTS + 1)))
+
 
 def execute(func, name):
     start = time()
@@ -41,5 +34,5 @@ def execute(func, name):
 
 if __name__ == "__main__":
     print({"number_of_requests": NUM_REQUESTS})
-    execute(naive, "naive")
+    execute(single_threaded, "single_threaded")
     execute(multi_threaded, "multi-threaded")
